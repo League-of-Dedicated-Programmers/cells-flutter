@@ -1,16 +1,11 @@
-# cells
+# Cells 
 
-A new Flutter project.
+Simple cell population simulator.
 
-## Getting Started
+Rules:
 
-This project is a starting point for a Flutter application.
+- Blue squares are food.  Cells can eat blue blocks if within a certain distance.
+- If the cell has just eaten, it has the chance to divide into a random number of cells
+- Eating randomly increases the lifespan of the cell
+- Lighter colored cells are younger than darker colored cells
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

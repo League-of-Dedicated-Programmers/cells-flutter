@@ -64,16 +64,16 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.blue,
         actions: [
           Text('Cell Count: $cellCount'),
-          SizedBox(
+          const SizedBox(
             width: 10,
           ),
           Text('Average Lifespan: $averageLifespan'),
-          SizedBox(
+          const SizedBox(
             width: 10,
           ),
           ElevatedButton(
             onPressed: _reset,
-            child: Text('Reset'),
+            child: const Text('Reset'),
           )
         ],
       ),
@@ -130,14 +130,14 @@ class _CellsState extends State<Cells> {
 
     cells = [initialCell];
     _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      bool randomFactor(int length) {
+      bool limitCellPopulation(int length) {
         return Random().nextDouble() < 5000 / length;
       }
 
       setState(() {
         final oldCells = [
           ...cells.where((element) {
-            return randomFactor(cells.length) && element.alive;
+            return limitCellPopulation(cells.length) && element.alive;
           })
         ];
         for (final cell in oldCells) {
@@ -148,10 +148,11 @@ class _CellsState extends State<Cells> {
         final newCells = oldCells
             .map((cell) => cell.divide())
             .expand((element) => element)
-            .where((element) => randomFactor(cells.length));
+            .where((element) => limitCellPopulation(cells.length));
+
         cells = [...oldCells, ...newCells];
         widget.setCellCount(cells.length);
-        if (cells.length > 0) {
+        if (cells.isNotEmpty) {
           final avgLifespan = cells
                   .map((c) => c.lifespan)
                   .fold(0, (value, element) => value + element) /
