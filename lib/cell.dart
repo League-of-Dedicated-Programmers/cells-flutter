@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cells/random.dart';
 import 'package:flutter/material.dart';
 
 import 'food.dart';
@@ -13,8 +14,8 @@ class Cell {
   bool justEaten = false;
 
   Cell({double? x, double? y})
-      : _x = x ?? (Random().nextDouble() - 0.5) * 200,
-        _y = y ?? (Random().nextDouble() - 0.5) * 200,
+      : _x = x ?? Random().normalizedDouble(max: 200),
+        _y = y ?? Random().normalizedDouble(max: 200),
         lifespan = Random().nextInt(20);
 
   List<Cell> divide() {
@@ -23,8 +24,9 @@ class Cell {
       alive = false;
       return [];
     }
-    _x += (Random().nextDouble() - 0.5) * 5;
-    _y += (Random().nextDouble() - 0.5) * 5;
+    _x += Random().normalizedDouble(max: 5);
+    _y += Random().normalizedDouble(max: 5);
+
     if (!justEaten) return [];
     justEaten = false;
 
@@ -33,8 +35,8 @@ class Cell {
     return List.generate(
         divisions,
         (index) => Cell(
-            x: _x + (Random().nextDouble() - 0.5) * 10,
-            y: _y + (Random().nextDouble() - 0.5) * 10));
+            x: _x + Random().normalizedDouble(max: 10),
+            y: _y + Random().normalizedDouble(max: 10)));
   }
 
   void paint(Canvas canvas, Size size) {

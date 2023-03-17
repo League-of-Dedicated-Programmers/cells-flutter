@@ -1,11 +1,6 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:cells/cell_painter.dart';
+import 'package:cells/petri_dish.dart';
 import 'package:flutter/material.dart';
-
-import 'cell.dart';
-import 'food.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,142 +32,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  bool resetting = false;
-
-  void _reset() {
-    setState(() {
-      averageLifespan = 0;
-      cellCount = 0;
-      resetting = true;
-    });
-    Timer(const Duration(milliseconds: 10), () {
-      setState(() {
-        resetting = false;
-      });
-    });
-  }
-
-  int averageLifespan = 0;
-  int cellCount = 0;
+  PetriDish? _petriDish;
+  bool _running = false;
 
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    _petriDish ??= PetriDish(size.height, size.width);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Cells!'),
         backgroundColor: Colors.blue,
         actions: [
-          Text('Cell Count: $cellCount'),
+          Text('Cell Count: ${_petriDish!.cellCount}'),
           const SizedBox(
             width: 10,
           ),
-          Text('Average Lifespan: $averageLifespan'),
+          Text('Average Lifespan: ${_petriDish!.averageLifespan}'),
           const SizedBox(
             width: 10,
           ),
-          ElevatedButton(
-            onPressed: _reset,
-            child: const Text('Reset'),
-          )
+          _running
+              ? ElevatedButton(
+                  onPressed: () {
+                    _petriDish!.stop();
+                    setState(() {
+                      _running = false;
+                    });
+                  },
+                  child: const Text('Stop'),
+                )
+              : ElevatedButton(
+                  onPressed: () {
+                    _petriDish!.start(notifyChanged: () => setState(() {}));
+                    setState(() {
+                      _running = true;
+                    });
+                  },
+                  child: const Text('Start'))
         ],
       ),
       body: SizedBox.expand(
-          child: resetting
-              ? null
-              : Cells(
-                  size: size,
-                  setAverageLifespan: (int lifespan) => setState(() {
-                    averageLifespan = lifespan;
-                  }),
-                  setCellCount: (int count) => setState(() {
-                    cellCount = count;
-                  }),
-                )),
+          child: CustomPaint(
+        painter: CellPainter(cells: _petriDish!.cells, food: _petriDish!.food),
+      )),
     );
-  }
-}
-
-class Cells extends StatefulWidget {
-  final Size size;
-  final Function(int) setAverageLifespan;
-  final Function(int) setCellCount;
-  const Cells(
-      {super.key,
-      required this.size,
-      required this.setAverageLifespan,
-      required this.setCellCount});
-
-  @override
-  State<Cells> createState() => _CellsState();
-}
-
-class _CellsState extends State<Cells> {
-  List<Cell> cells = [];
-  List<Food> food = [];
-  late Timer _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    final height = widget.size.height;
-    final width = widget.size.width;
-    final foodY = List.generate(100, (index) => index * height / 100);
-    final foodX = List.generate(200, (index) => index * width / 200);
-
-    for (final x in foodX) {
-      for (final y in foodY) {
-        food.add(Food(x: x, y: y));
-      }
-    }
-
-    final initialCell = Cell(x: width / 2, y: height / 2);
-
-    cells = [initialCell];
-    _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
-      bool limitCellPopulation(int length) {
-        return Random().nextDouble() < 5000 / length;
-      }
-
-      setState(() {
-        final oldCells = [
-          ...cells.where((element) {
-            return limitCellPopulation(cells.length) && element.alive;
-          })
-        ];
-        for (final cell in oldCells) {
-          for (final food in food) {
-            food.eat(cell);
-          }
-        }
-        final newCells = oldCells
-            .map((cell) => cell.divide())
-            .expand((element) => element)
-            .where((element) => limitCellPopulation(cells.length));
-
-        cells = [...oldCells, ...newCells];
-        widget.setCellCount(cells.length);
-        if (cells.isNotEmpty) {
-          final avgLifespan = cells
-                  .map((c) => c.lifespan)
-                  .fold(0, (value, element) => value + element) /
-              cells.length;
-          widget.setAverageLifespan(avgLifespan.ceil());
-        }
-      });
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: CellPainter(cells: cells, food: food),
-    );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _timer.cancel();
   }
 }
